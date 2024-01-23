@@ -321,29 +321,67 @@ select h.house_type, h.rating, o.first_name from houses h inner join rent_info r
 select count(h.house_type) as кол_во, sum(h.price) as sum from houses h where house_type = 'Apartment' group by house_type;
 
 -- - 8. Агентсволардын арасынан аты ‘My_House’ болгон агентсвоны, агентсвонын адресин жана анын бардык уйлорун, уйлордун адрессин чыгар.
-
+select a.name,h.house_type,ad.city,ad.street,h.description from agencies a inner join rent_info ri on a.id = ri.agency_id inner join addresses ad on a.address_id = ad.id inner join houses h on ri.house_id = h.id where name = 'My House';
 
 -- - 9. Уйлордун арасынан мебели бар уйлорду, уйдун ээсин жана уйдун адрессин чыгар.
 select h.house_type, o.first_name, a.street from houses h inner join rent_info ri on h.id = ri.house_id inner join owners o on o.id = h.owner_id inner join addresses a on a.id = h.address_id where furniture = true;
 
 -- - 10.Кленти жок уйлордун баарын жана анын адрессин жана ал уйлор кайсыл агентсвога тийешелуу экенин чыгар.
-select * from houses h left join rent_info ri on h.id = ri.house_id inner join addresses a on h.address_id = a.id inner join agencies a2 on a2.id = ri.agency_id;
+select * from houses h left join rent_info ri on h.id = ri.house_id left join addresses a on h.address_id = a.id left join agencies a2 on a2.id = ri.agency_id;
 
 -- - 11.Клиенттердин улутуна карап, улутуну жана ал улуутта канча клиент жашайт санын чыгар.
--- - 12.Уйлордун арасынан рейтингтери чон, кичине, орточо болгон 3 уйду чыгар.
--- - 13.Уйлору жок киленттерди, клиенттери жок уйлорду чыгар.
--- - 14.Уйлордун бааларынын орточо суммасын чыгар.
--- - 15.‘A’ тамга менен башталган уйдун ээсинин аттарын, клиенттердин аттарын чыгар.
--- - 16.Эн уйу коп owner_ди жана анын уйлорунун санын чыгар.
--- - 17.Улуту Kyrgyzstan уй-булолу customerлерди чыгарыныз.
-select * from customers c where nationality = 'Kyrgyz';
+select c.nationality, count(*) from customers c group by c.nationality;
 
+-- - 12.Уйлордун арасынан рейтингтери чон, кичине, орточо болгон 3 уйду чыгар.
+select max(h.rating), avg(h.rating), min(h.rating) from houses h;
+
+-- - 13.Уйлору жок киленттерди, клиенттери жок уйлорду чыгар.
+select * from houses h right join rent_info ri on h.id = ri.house_id right join customers c on ri.customer_id = c.id;
+
+-- - 14.Уйлордун бааларынын орточо суммасын чыгар.
+select avg(h.price) from houses h;
+
+-- - 15.‘A’ тамга менен башталган уйдун ээсинин аттарын, клиенттердин аттарын чыгар.
+select h.house_type, c.first_name, c.last_name from houses h
+    inner join rent_info ri on h.id = ri.house_id
+    inner join customers c on c.id = ri.customer_id
+    inner join owners o on o.id = ri.owner_id where h.description like 'A%';
+
+-- - 16.Эн уйу коп owner_ди жана анын уйлорунун санын чыгар.
+select o.first_name, count(o.id) as кол_во from owners o
+    inner join houses h on o.id = h.owner_id
+                                           group by o.first_name
+                                           order by count(o.id) desc limit 1;
+
+-- - 17.Улуту Kyrgyzstan уй-булолу customerлерди чыгарыныз.
+select * from customers c where nationality = 'Kyrgyz' and marital_status in ('Married');
 
 -- - 18.Эн коп болмолуу уйду жана анын адресин ал уй кайсыл ownerге таандык ошону чыгарыныз.
+select max(h.room) as max_room, a.street, o.first_name from houses h
+    inner join addresses a on a.id = h.address_id
+    inner join owners o on o.id = h.owner_id  group by a.street , o.first_name limit 1;
+
 -- - 19.Бишкекте жайгашкан уйлорду жана клиентерин кошо чыгарыныз.
+select * from houses h
+    inner join rent_info ri on h.id = ri.house_id
+    inner join customers c on c.id = ri.customer_id
+inner join addresses a on h.address_id = a.id where a.city = 'Bishkek';
+
 -- - 20.Жендерине карап группировка кылыныз.
+select c.gender, count(c.gender) from customers c group by c.gender;
+
 -- - 21.Эн коп моонотко ижарага алынган уйду чыгарыныз.
+select h.description, max(h.rating) from houses h group by h.description limit 1;
+
 -- - 22.Эн кымбат уйду жана анын ээсин чыгарыныз.
+select h.description, o.first_name,max(h.price) from houses h
+inner join owners o on o.id = h.owner_id  group by h.description, o.first_name limit 1;
+
 -- - 23.Бир региондо жайгашкан баардык агентстволорду чыгарыныз
+select a.name, count(a.id) from agencies a group by a.name;
+
 -- - 24.Рейтинг боюнча эн популярдуу 5 уйду чыгар.
+select max(h.rating), h.description from houses h group by h.description order by max(h.rating) desc limit 5;
+
 -- - 25.Орто жаштагы owner_ди , анын уйун , уйдун адрессин чыгар.
+select o.first_name, avg(extract(year from  current_date) - extract(year from date_of_birth)) from owners o group by o.first_name;
